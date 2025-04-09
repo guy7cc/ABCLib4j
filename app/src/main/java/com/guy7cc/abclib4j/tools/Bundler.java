@@ -1,5 +1,6 @@
 package com.guy7cc.abclib4j.tools;
 
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
@@ -12,7 +13,11 @@ import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithName;
+import com.github.javaparser.printer.PrettyPrinter;
+import com.github.javaparser.printer.configuration.Indentation;
+import com.github.javaparser.printer.configuration.PrettyPrinterConfiguration;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -24,10 +29,13 @@ import java.util.stream.Collectors;
 
 public class Bundler {
     public static void main(String[] args) throws IOException {
+        StaticJavaParser.getConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17);
+
         Path sourceRoot = Paths.get("src/main/java");
         Path mainJavaPath = sourceRoot.resolve("com/guy7cc/abclib4j/Main.java");
-        Path output = Paths.get("build/generated/Main.java");
-        Files.createDirectories(output.getParent());
+        Path outputPretty = Paths.get("build/generated/Main.java");
+        Path outputMinify = Paths.get("build/generated/Main.minify.java");
+        Files.createDirectories(outputPretty.getParent());
 
         Queue<Path> localLibPaths = new ArrayDeque<>();
         localLibPaths.add(mainJavaPath);
@@ -58,7 +66,7 @@ public class Bundler {
             }
         }
 
-        SortedSet<ImportDeclaration> importLibs = new TreeSet<>(Comparator.comparing(NodeWithName::getNameAsString));
+        Set<ImportDeclaration> importLibs = new HashSet<>();
         for(CompilationUnit cu : localLibCUs){
             for(ImportDeclaration id : cu.getImports()){
                 if(!id.getNameAsString().startsWith("com.guy7cc.abclib4j")){
@@ -72,17 +80,85 @@ public class Bundler {
         importLibs.forEach(resultCU::addImport);
         localLibs.forEach(resultCU::addType);
 
-        Files.writeString(output, resultCU.toString());
-        System.out.println("✅ Main.java generated at: " + output);
+        PrettyPrinterConfiguration pretty = new PrettyPrinterConfiguration();
+        pretty.setIndentation(new Indentation(Indentation.IndentType.SPACES, 4));
+        pretty.setOrderImports(true);
+        pretty.setPrintComments(true);
+        pretty.setPrintJavadoc(true);
+        pretty.setEndOfLineCharacter(System.lineSeparator());
+        PrettyPrinter prettyPrinter = new PrettyPrinter(pretty);
+
+        PrettyPrinterConfiguration minify = new PrettyPrinterConfiguration();
+        minify.setIndentation(new Indentation(Indentation.IndentType.SPACES, 1));
+        minify.setOrderImports(true);
+        minify.setPrintComments(false);
+        minify.setPrintJavadoc(false);
+        minify.setEndOfLineCharacter("");
+        PrettyPrinter minifyPrinter = new PrettyPrinter(minify);
+
+        Files.writeString(outputPretty, prettyPrinter.print(resultCU));
+        System.out.println("✅ Main.java generated at: " + outputPretty);
+        Files.writeString(outputMinify, minifyPrinter.print(resultCU));
+        System.out.println("✅ Main.minify.java generated at: " + outputMinify);
     }
 
     private static Set<Path> collectLocalLibraries(Path sourceRoot, CompilationUnit cu){
-        Set<String> importedClasses = cu.getImports().stream()
+        Set<Path> localLibraries = new HashSet<>();
+
+        Set<String> imported = cu.getImports().stream()
+                .filter(id -> !id.isStatic() && !id.isAsterisk())
                 .map(ImportDeclaration::getNameAsString)
                 .collect(Collectors.toSet());
 
-        Set<Path> localLibraries = new HashSet<>();
-        for (String fqcn : importedClasses) {
+        for (String fqcn : imported) {
+            if (fqcn.startsWith("com.guy7cc.abclib4j")) {
+                Path relPath = Paths.get(fqcn.replace('.', '/') + ".java");
+                Path fullPath = sourceRoot.resolve(relPath);
+                if (Files.exists(fullPath)) {
+                    localLibraries.add(fullPath);
+                }
+            }
+        }
+
+        Set<String> astersik = cu.getImports().stream()
+                .filter(id -> !id.isStatic() && id.isAsterisk())
+                .map(ImportDeclaration::getNameAsString)
+                .collect(Collectors.toSet());
+
+        for(String fqcn : astersik){
+            if (fqcn.startsWith("com.guy7cc.abclib4j")) {
+                Path dirRelPath = Paths.get(fqcn.replace('.', '/'));
+                Path dirFullPath = sourceRoot.resolve(dirRelPath);
+                if(Files.exists(dirFullPath)){
+                    for(File file : dirFullPath.toFile().listFiles()){
+                        Path fullPath = file.toPath();
+                        localLibraries.add(fullPath);
+                    }
+                }
+            }
+        }
+
+        Set<String> statik = cu.getImports().stream()
+                .filter(id -> id.isStatic() && !id.isAsterisk())
+                .map(ImportDeclaration::getNameAsString)
+                .collect(Collectors.toSet());
+
+        for (String fqcn : statik) {
+            if (fqcn.startsWith("com.guy7cc.abclib4j")) {
+                Path relPath = Paths.get(fqcn.substring(0, fqcn.lastIndexOf('.')).replace('.', '/') + ".java");
+                Path fullPath = sourceRoot.resolve(relPath);
+                if (Files.exists(fullPath)) {
+                    localLibraries.add(fullPath);
+                }
+            }
+        }
+
+        Set<String> statikAsterisk = cu.getImports().stream()
+                .filter(id -> id.isStatic() && id.isAsterisk())
+                .map(ImportDeclaration::getNameAsString)
+                .collect(Collectors.toSet());
+
+        for (String fqcn : statikAsterisk) {
             if (fqcn.startsWith("com.guy7cc.abclib4j")) {
                 Path relPath = Paths.get(fqcn.replace('.', '/') + ".java");
                 Path fullPath = sourceRoot.resolve(relPath);
@@ -144,10 +220,10 @@ public class Bundler {
                             });
 
                         } catch (IOException e) {
-                            System.err.println("⚠️ Failed to parse: " + classPath + ": " + e.getMessage());
+                            System.err.println("Failed to parse: " + classPath + ": " + e.getMessage());
                         }
                     } else {
-                        System.err.println("⚠️ Class not found for static import: " + classPath);
+                        System.err.println("Class not found for static import: " + classPath);
                     }
                 } else {
                     try {
@@ -180,7 +256,7 @@ public class Bundler {
         });
 
         // Replace field access: PI → Math.PI
-        cu.findAll(NameExpr.class).forEach(ne -> {
+        cu.findAll(FieldAccessExpr.class).forEach(ne -> {
             String name = ne.getNameAsString();
             if (staticIdentifiers.containsKey(name)) {
                 Optional<Node> parent = ne.getParentNode();
@@ -193,7 +269,7 @@ public class Bundler {
             }
         });
 
-        // import static 文の削除
+        // remove import static
         cu.getImports().removeIf(ImportDeclaration::isStatic);
     }
 }

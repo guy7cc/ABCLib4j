@@ -2,14 +2,18 @@ package com.guy7cc.abclib4j.graph;
 
 import com.guy7cc.abclib4j.common.Sized;
 
-public interface Graph<V, E> extends Iterable<V>, Sized {
-    V getVertex(int index);
+import java.util.Collection;
 
-    E getEdge(int from, int to);
+public interface Graph<V extends Vertex, E extends Edge> extends Sized {
+    V vertex(int index);
 
-    E[] getEdgeAllFrom(int from);
+    E edge(int index);
 
-    E[] getEdgeAllTo(int to);
+    Collection<E> fromVertex(int index);
 
-    E setEdge(int from, int to, E e);
+    void addEdge(int from, int to, E edge);
+
+    Collection<V> vertices();
+
+    Collection<E> edges();
 }

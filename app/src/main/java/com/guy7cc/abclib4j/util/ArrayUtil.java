@@ -9,12 +9,12 @@ public final class ArrayUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T[][] newArray(final int y, final int x, final T[] type) {
-        return (T[][]) Array.newInstance(type.getClass().getComponentType(), y, x);
+    public static <T> T[][] newArray(final int n, final int m, final T[] type) {
+        return (T[][]) Array.newInstance(type.getClass().getComponentType(), n, m);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T[][][] newArray(final int z, final int y, final int x, final T[] type) {
-        return (T[][][]) Array.newInstance(type.getClass().getComponentType(), z, y, x);
+    public static <T> T[][][] newArray(final int n, final int m, final int l, final T[] type) {
+        return (T[][][]) Array.newInstance(type.getClass().getComponentType(), n, m, l);
     }
 }
