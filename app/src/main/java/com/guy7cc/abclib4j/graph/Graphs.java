@@ -2,9 +2,8 @@ package com.guy7cc.abclib4j.graph;
 
 import java.util.*;
 
-
 public class Graphs {
-    public static <V extends Vertex, E extends Edge> List<List<Integer>> connectedVertices(Graph<V, E> graph){
+    public static List<List<Integer>> connectedVertices(MinimumGraph graph){
         boolean[] visited = new boolean[graph.size()];
         int min = 0;
         List<List<Integer>> list = new ArrayList<>();
@@ -16,43 +15,46 @@ public class Graphs {
             visited[min] = true;
             while(!queue.isEmpty()){
                 int v = queue.poll();
-                Collection<E> edges = graph.fromVertex(v);
-                for(Edge edge : edges){
-                    EdgeInfo info = edge.getInfo();
-                    if(!visited[info.to()]) {
-                        connected.add(info.to());
-                        queue.add(info.to());
-                        visited[info.to()] = true;
+                for(int to : graph.getEdges(v)){
+                    if(!visited[to]) {
+                        connected.add(to);
+                        queue.add(to);
+                        visited[to] = true;
                     }
                 }
             }
             list.add(connected);
-            while(visited[min]) min++;
+            while(min < graph.size() && visited[min]) min++;
         }
         return list;
     }
 
-    public static <V extends Vertex, E extends Edge> int[] bfs(Graph<V, E> graph, int start){
+    public static BFSResult bfs(MinimumGraph graph, int start){
         int[] cost = new int[graph.size()];
+        int maxCost = 0;
+        int maxCostVertex = start;
         Arrays.fill(cost, Integer.MAX_VALUE);
         Queue<Integer> queue = new ArrayDeque<>();
         queue.add(start);
         cost[start] = 0;
         while(!queue.isEmpty()){
             int from = queue.poll();
-            Collection<E> edges = graph.fromVertex(from);
-            for(E edge : edges){
-                int to = edge.getInfo().to();
+            List<Integer> edges = graph.getEdges(from);
+            for(int to : edges){
                 if(cost[to] > cost[from] + 1){
                     cost[to] = cost[from] + 1;
                     queue.add(to);
+                    if(cost[to] > maxCost){
+                        maxCost = cost[to];
+                        maxCostVertex = to;
+                    }
                 }
             }
         }
-        return cost;
+        return new BFSResult(cost, maxCost, maxCostVertex);
     }
 
-    public static <V extends Vertex, E extends Cost> long[] dijkstra(Graph<V, E> graph, int start){
+    public static <V extends Vertex, E extends Edge & Weighted> DijkstraResult dijkstra(DecoratedGraph<V, E> graph, int start){
         long[] costs = new long[graph.size()];
         Arrays.fill(costs, Long.MAX_VALUE);
         Queue<CostIndex> queue = new PriorityQueue<>(Comparator.comparingLong(ci -> ci.cost));
@@ -61,16 +63,23 @@ public class Graphs {
         while(!queue.isEmpty()){
             CostIndex ci = queue.poll();
             if(costs[ci.index] != ci.cost) continue;
-            Collection<E> edgeHolders = graph.fromVertex(ci.index);
+            Collection<E> edgeHolders = graph.getEdges(ci.index);
             for(E cost : edgeHolders){
-                EdgeInfo edgeInfo = cost.getInfo();
-                if(costs[edgeInfo.to()] > costs[edgeInfo.from()] + cost.getCost()){
-                    costs[edgeInfo.to()] = costs[edgeInfo.from()] + cost.getCost();
-                    queue.add(new CostIndex(costs[edgeInfo.from()] + cost.getCost(), edgeInfo.to()));
+                if(costs[cost.to()] > costs[cost.from()] + cost.getWeight()){
+                    costs[cost.to()] = costs[cost.from()] + cost.getWeight();
+                    queue.add(new CostIndex(costs[cost.from()] + cost.getWeight(), cost.to()));
                 }
             }
         }
-        return costs;
+        long maxCost = 0;
+        int maxCostVertex = start;
+        for(int i = 0; i < costs.length; i++){
+            if(costs[i] > maxCost){
+                maxCost = costs[i];
+                maxCostVertex = i;
+            }
+        }
+        return new DijkstraResult(costs, maxCost, maxCostVertex);
     }
 
     private record CostIndex(long cost, int index){

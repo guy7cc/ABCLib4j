@@ -1,7 +1,17 @@
 package com.guy7cc.abclib4j.graph;
 
-public interface Vertex {
-    VertexInfo getInfo();
+public class Vertex {
+    private int index;
 
-    void setInfo(VertexInfo vertexInfo);
+    public Vertex(){
+
+    }
+
+    public void setInfo(int index){
+        this.index = index;
+    }
+
+    public int index(){
+        return this.index;
+    }
 }

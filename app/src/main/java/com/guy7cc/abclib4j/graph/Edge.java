@@ -1,7 +1,23 @@
 package com.guy7cc.abclib4j.graph;
 
-public interface Edge {
-    EdgeInfo getInfo();
+public class Edge {
+    private int from;
+    private int to;
 
-    void setInfo(EdgeInfo edgeInfo);
+    public Edge(){
+
+    }
+
+    public void setInfo(int from, int to){
+        this.from = from;
+        this.to = to;
+    }
+
+    public int from(){
+        return this.from;
+    }
+
+    public int to(){
+        return this.to;
+    }
 }
