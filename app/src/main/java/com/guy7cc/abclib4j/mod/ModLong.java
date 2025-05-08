@@ -1,40 +1,57 @@
 package com.guy7cc.abclib4j.mod;
 
 public class ModLong {
-    public static long mod = 988244353L;
+    public static final long MOD988244353 = 988244353L;
 
-    public long value;
+    public static long mod = MOD988244353;
+    public final long value;
 
     private ModLong(long value) {
-        this.value = parse(value);
+        this.value = mod(value);
     }
 
     public static ModLong of(long value) {
         return new ModLong(value);
     }
 
+    public static long mod(long value){
+        return value >= 0 ? value % mod : value % mod + mod;
+    }
+
     public ModLong add(ModLong other) {
-        value = parse(value + other.value);
-        return this;
+        return ModLong.of(this.value + other.value);
+    }
+
+    public ModLong add(long value){
+        return ModLong.of(this.value + value);
     }
 
     public ModLong sub(ModLong other) {
-        value = parse(value - other.value);
-        return this;
+        return ModLong.of(this.value - other.value);
+    }
+
+    public ModLong sub(long value){
+        return sub(this.value - value);
     }
 
     public ModLong mul(ModLong other) {
-        value = parse(value * other.value);
-        return this;
+        return ModLong.of(this.value * other.value);
+    }
+
+    public ModLong mul(long value){
+        return ModLong.of(this.value * value);
     }
 
     public ModLong div(ModLong other) {
-        value = parse(value * inv(other.value, mod));
-        return this;
+        return ModLong.of(this.value * inv(other.value));
     }
 
-    public static long inv(long a, long m) {
-        long b = m, u = 1, v = 0;
+    public ModLong div(long value){
+        return ModLong.of(this.value * inv(value));
+    }
+
+    public static long inv(long a) {
+        long b = mod, u = 1, v = 0;
         while (b > 0) {
             long t = a / b;
 
@@ -48,8 +65,8 @@ public class ModLong {
             u = v;
             v = tmp;
         }
-        u %= m;
-        if (u < 0) u += m;
+        u %= mod;
+        if (u < 0) u += mod;
         return u;
     }
 
@@ -62,9 +79,5 @@ public class ModLong {
             n >>= 1;
         }
         return ModLong.of(res);
-    }
-
-    public static long parse(long value){
-        return value >= 0 ? value % mod : value % mod + mod;
     }
 }

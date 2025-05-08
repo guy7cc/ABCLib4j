@@ -97,9 +97,9 @@ public class Bundler {
         PrettyPrinter minifyPrinter = new PrettyPrinter(minify);
 
         Files.writeString(outputPretty, prettyPrinter.print(resultCU));
-        System.out.println("✅ Main.java generated at: " + outputPretty);
+        System.out.println("Main.java generated at: " + outputPretty);
         Files.writeString(outputMinify, minifyPrinter.print(resultCU));
-        System.out.println("✅ Main.minify.java generated at: " + outputMinify);
+        System.out.println("Main.minify.java generated at: " + outputMinify);
     }
 
     private static Set<Path> collectLocalLibraries(Path sourceRoot, CompilationUnit cu){
@@ -239,7 +239,7 @@ public class Bundler {
                             }
                         }
                     } catch (ClassNotFoundException e) {
-                        System.err.println("⚠️ Failed to load standard class: " + classFqcn);
+                        System.err.println("Failed to load standard class: " + classFqcn);
                     }
                 }
             }

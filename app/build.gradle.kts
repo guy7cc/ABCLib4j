@@ -1,6 +1,5 @@
 plugins {
     java
-    application
 }
 
 repositories {
@@ -17,10 +16,6 @@ java {
     }
 }
 
-application {
-    mainClass = "com.guy7cc.abclib4j.tools.Bundler"
-}
-
 tasks.register<JavaExec>("generateSingleJava") {
     group = "submission"
     description = "Generate Main.java for submission"
@@ -29,15 +24,4 @@ tasks.register<JavaExec>("generateSingleJava") {
     mainClass.set("com.guy7cc.abclib4j.tools.Bundler")
 
     dependsOn("classes")
-}
-
-tasks.register("printSubmissionFile") {
-    group = "submission"
-    description = "Print the path of the generated Main.java"
-
-    dependsOn("generateSingleJava")
-
-    doLast {
-        println("✅ Generated Main.java at: build/generated/Main.java")
-    }
 }
