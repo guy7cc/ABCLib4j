@@ -73,4 +73,12 @@ public class Mazz {
         }
         return gcd;
     }
+
+    public static boolean isPrime(long a){
+        long sqrt = (long)Math.ceil(Math.sqrt(a));
+        for (int i = 2; i <= sqrt; i++) {
+            if(a % i == 0) return false;
+        }
+        return true;
+    }
 }

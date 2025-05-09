@@ -28,12 +28,12 @@ public class Bell {
         return num[N - 1][N - 1];
     }
 
-    public void forEach(Consumer<Stack<Set<Integer>>> consumer){
+    public void forEach(BellConsumer consumer){
         stack = new Stack<>();
         forEach(consumer, 0);
     }
 
-    private void forEach(Consumer<Stack<Set<Integer>>> consumer, int index){
+    private void forEach(BellConsumer consumer, int index){
         for (int i = 0; i <= stack.size(); i++) {
             if(index == N) consumer.accept(stack);
             else if(i < stack.size()) {
@@ -48,5 +48,10 @@ public class Bell {
                 stack.pop();
             }
         }
+    }
+
+    @FunctionalInterface
+    public interface BellConsumer{
+        void accept(Stack<Set<Integer>> stack);
     }
 }

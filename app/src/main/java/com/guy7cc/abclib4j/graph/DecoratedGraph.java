@@ -49,6 +49,11 @@ public class DecoratedGraph<V extends Vertex, E extends Edge> {
         return graph;
     }
 
+    public void addEdge(E edge){
+        List<E> edges = e[edge.from()];
+        edges.add(edge);
+    }
+
     public void addEdge(int from, int to, E edge){
         edge.setInfo(from, to);
         List<E> edges = e[from];
