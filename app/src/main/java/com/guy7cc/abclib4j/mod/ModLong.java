@@ -1,9 +1,9 @@
 package com.guy7cc.abclib4j.mod;
 
 public class ModLong {
-    public static final long MOD988244353 = 988244353L;
+    public static final int MOD998244353 = 998244353;
 
-    public static long mod = MOD988244353;
+    public static long mod = MOD998244353;
     public final long value;
 
     private ModLong(long value) {
@@ -71,13 +71,13 @@ public class ModLong {
     }
 
     public ModLong pow(long n) {
-        long a = value;
-        long res = 1;
+        ModLong a = ModLong.of(value);
+        ModLong res = ModLong.of(1);
         while (n > 0) {
-            if ((n & 1) > 0) res = res * a % mod;
-            a = a * a % mod;
+            if ((n & 1) > 0) res = res.mul(a);
+            a = a.mul(a);
             n >>= 1;
         }
-        return ModLong.of(res);
+        return res;
     }
 }

@@ -1,12 +1,12 @@
 package com.guy7cc.abclib4j.mod;
 
 public class ModCombination {
-    public static int mod = 988244353;
+    public static int mod = ModLong.MOD998244353;
 
     public final int max;
-    private final long[] fac;
-    private final long[] finv;
-    private final long[] inv;
+    public final long[] fac;
+    public final long[] finv;
+    public final long[] inv;
 
     public ModCombination(int max){
         this.max = max;
@@ -23,9 +23,17 @@ public class ModCombination {
         }
     }
 
-    long get(int n, int k){
+    public long get(int n, int k){
         if (n < k) return 0;
         if (n < 0 || k < 0) return 0;
         return fac[n] * (finv[k] * finv[n - k] % mod) % mod;
+    }
+
+    public long C(int n, int k){
+        return get(n, k);
+    }
+
+    public long H(int n, int k){
+        return get(n + k - 1, k);
     }
 }

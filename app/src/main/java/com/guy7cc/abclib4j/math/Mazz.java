@@ -1,5 +1,7 @@
 package com.guy7cc.abclib4j.math;
 
+import com.guy7cc.abclib4j.data.FenwickTree;
+
 public class Mazz {
     public static int min(int[] a){
         int min = Integer.MAX_VALUE;
@@ -80,5 +82,16 @@ public class Mazz {
             if(a % i == 0) return false;
         }
         return true;
+    }
+
+    public static long inversionNum(int[] a){
+        int max = max(a) + 1;
+        FenwickTree ft = new FenwickTree(max);
+        long sum = 0;
+        for (int i = 0; i < a.length; i++) {
+            sum += ft.sum(a[i], max);
+            ft.add(a[i], 1);
+        }
+        return sum;
     }
 }
